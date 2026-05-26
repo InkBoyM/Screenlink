@@ -437,17 +437,6 @@ video { width: 100%; max-height: 440px; object-fit: contain; display: block; }
   transition: border-color 0.15s, background 0.15s;
 }
 .fs-btn:hover { border-color: var(--accent); background: rgba(0,0,0,0.92); }
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  padding: 2.5rem;
-  text-align: center;
-}
 
 .how {
   background: var(--surface);
@@ -509,14 +498,12 @@ footer {
   </div>
 </header>
 
-<!-- ══════ THEME PANEL ══════ -->
 <div class="theme-panel" id="themePanel">
   <div class="theme-panel-head">
     <span class="theme-panel-title">THEME EDITOR</span>
     <button class="theme-close" onclick="toggleThemePanel()">✕</button>
   </div>
   <div class="theme-body">
-    <!-- Presets -->
     <div>
       <div class="blob-label" style="margin-bottom:8px;">PRESETS</div>
       <div class="preset-row" id="presetRow">
@@ -528,7 +515,6 @@ footer {
         <button class="preset-chip" onclick="applyPreset('light')"><span class="chip-dot" style="background:#f1f5f9;border:1px solid #cbd5e1;"></span>LIGHT</button>
       </div>
     </div>
-    <!-- Color pickers -->
     <div>
       <div class="blob-label" style="margin-bottom:8px;">CUSTOM COLORS</div>
       <div class="color-grid">
@@ -575,9 +561,7 @@ footer {
 
 <main>
 
-<!-- ══════ SHARE PANEL ══════ -->
 <div class="panel active" id="sharePanel">
-
   <div class="how">
     <strong>How it works —</strong>
     you and your viewer exchange two short text blobs (paste them in a chat, email, anything).
@@ -585,8 +569,6 @@ footer {
     <strong>Step 2:</strong> send that Offer to your viewer; they'll send back an Answer.
     <strong>Step 3:</strong> paste their Answer here — done. ✓
   </div>
-
-  <!-- Step 1 -->
   <div class="step active-step" id="sStep1">
     <div class="step-head">
       <div class="step-num">1</div>
@@ -607,8 +589,6 @@ footer {
       </div>
     </div>
   </div>
-
-  <!-- Step 2 -->
   <div class="step" id="sStep2">
     <div class="step-head">
       <div class="step-num">2</div>
@@ -627,8 +607,6 @@ footer {
       </div>
     </div>
   </div>
-
-  <!-- Step 3 -->
   <div class="step" id="sStep3">
     <div class="step-head">
       <div class="step-num">3</div>
@@ -642,12 +620,9 @@ footer {
       <div class="info ok" id="sConnected" style="display:none;">🟢 Viewer connected — they can see your screen!</div>
     </div>
   </div>
-
 </div>
 
-<!-- ══════ VIEW PANEL ══════ -->
 <div class="panel" id="viewPanel">
-
   <div class="how">
     <strong>How it works —</strong>
     ask the host to send you their Offer text.
@@ -655,8 +630,6 @@ footer {
     <strong>Step 2:</strong> send the Answer back to the host.
     <strong>Step 3:</strong> the stream appears automatically once they connect. ✓
   </div>
-
-  <!-- Step 1 -->
   <div class="step active-step" id="vStep1">
     <div class="step-head">
       <div class="step-num">1</div>
@@ -669,8 +642,6 @@ footer {
       <button class="btn btn-blue" id="vAnswerBtn" onclick="createAnswer()" disabled>⚡ GENERATE ANSWER</button>
     </div>
   </div>
-
-  <!-- Step 2 -->
   <div class="step" id="vStep2">
     <div class="step-head">
       <div class="step-num">2</div>
@@ -688,8 +659,6 @@ footer {
       </div>
     </div>
   </div>
-
-  <!-- Step 3 -->
   <div class="step" id="vStep3">
     <div class="step-head">
       <div class="step-num">3</div>
@@ -714,7 +683,6 @@ footer {
       </div>
     </div>
   </div>
-
 </div>
 </main>
 
@@ -724,16 +692,16 @@ footer {
 </footer>
 
 <script>
+// ── ADD YOUR TURN SERVER HERE IF NEEDED FOR INTERNET CONNECTIONS ──
 const ICE_CFG = { iceServers: [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  // { urls: 'turn:YOUR_TURN_SERVER', username: 'USER', credential: 'PASS' }
 ]};
 
 let hostPC      = null;
 let viewerPC    = null;
 let localStream = null;
-
-// ── Utilities ────────────────────────────────────────────
 
 const encode = obj => btoa(JSON.stringify(obj));
 const decode = str => JSON.parse(atob(str.trim()));
@@ -780,7 +748,7 @@ function waitForICE(pc) {
     if (pc.iceGatheringState === 'complete') { resolve(); return; }
     const h = () => { if (pc.iceGatheringState === 'complete') { pc.removeEventListener('icegatheringstatechange', h); resolve(); } };
     pc.addEventListener('icegatheringstatechange', h);
-    setTimeout(resolve, 7000); // fallback: use whatever we have after 7s
+    setTimeout(resolve, 7000); 
   });
 }
 
@@ -791,8 +759,6 @@ function switchTab(tab) {
   });
 }
 
-// ── HOST / SHARE ─────────────────────────────────────────
-
 async function startCapture() {
   try {
     localStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
@@ -801,7 +767,6 @@ async function startCapture() {
       setInfo('sInfo1', 'Screen capture failed: ' + e.message, 'err');
     return;
   }
-
   document.getElementById('localVideo').srcObject = localStream;
   document.getElementById('sPreviewWrap').style.display = 'block';
   document.getElementById('sCaptureBtn').style.display = 'none';
@@ -810,42 +775,33 @@ async function startCapture() {
   setInfo('sInfo1', 'Screen captured ✓ — now generate your Offer in Step 2.', 'ok');
   markDone('sStep1');
   markActive('sStep2');
-
   localStream.getVideoTracks()[0].onended = stopAll;
 }
 
 async function createOffer() {
   if (!localStream) return;
-
   const btn = document.getElementById('sOfferBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> GATHERING…';
-  setInfo('sInfo2', 'Collecting network info — takes a few seconds…', 'warn');
-
+  setInfo('sInfo2', 'Collecting network info…', 'warn');
   if (hostPC) { try { hostPC.close(); } catch(_){} }
   hostPC = new RTCPeerConnection(ICE_CFG);
+  
+  // DEBUG LOGGING
+  hostPC.oniceconnectionstatechange = () => console.log("Host ICE State:", hostPC.iceConnectionState);
+  
   localStream.getTracks().forEach(t => hostPC.addTrack(t, localStream));
-
   hostPC.onconnectionstatechange = () => {
     const s = hostPC.connectionState;
-    if (s === 'connected') {
-      document.getElementById('sConnected').style.display = 'flex';
-      markDone('sStep3');
-      setInfo('sInfo3', 'Connected!', 'ok');
-    }
-    if (['disconnected','failed','closed'].includes(s)) {
-      document.getElementById('sConnected').style.display = 'none';
-      setInfo('sInfo3', 'Viewer disconnected.', 'warn');
-    }
+    if (s === 'connected') { document.getElementById('sConnected').style.display = 'flex'; markDone('sStep3'); setInfo('sInfo3', 'Connected!', 'ok'); }
+    if (['disconnected','failed','closed'].includes(s)) { document.getElementById('sConnected').style.display = 'none'; setInfo('sInfo3', 'Viewer disconnected.', 'warn'); }
   };
-
   const offer = await hostPC.createOffer();
   await hostPC.setLocalDescription(offer);
   await waitForICE(hostPC);
-
   document.getElementById('sOfferBlob').value = encode(hostPC.localDescription);
   document.getElementById('sOfferArea').style.display = 'block';
-  setInfo('sInfo2', 'Copy the Offer below and send it to your viewer.', 'ok');
+  setInfo('sInfo2', 'Copy the Offer below.', 'ok');
   btn.innerHTML = '↻ REGENERATE';
   btn.disabled = false;
   markDone('sStep2');
@@ -853,228 +809,92 @@ async function createOffer() {
 }
 
 function sAnswerChanged() {
-  document.getElementById('sConnectBtn').disabled =
-    document.getElementById('sAnswerBlob').value.trim().length < 10;
+  document.getElementById('sConnectBtn').disabled = document.getElementById('sAnswerBlob').value.trim().length < 10;
 }
 
 async function applyAnswer() {
   let desc;
   try { desc = decode(document.getElementById('sAnswerBlob').value); }
-  catch(e) { setInfo('sInfo3', 'Invalid answer — check you pasted it in full.', 'err'); return; }
-
+  catch(e) { setInfo('sInfo3', 'Invalid answer.', 'err'); return; }
   const btn = document.getElementById('sConnectBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> CONNECTING…';
-  setInfo('sInfo3', 'Applying answer…', 'warn');
-
-  try {
-    await hostPC.setRemoteDescription(desc);
-    setInfo('sInfo3', 'Answer applied — waiting for stream to establish…', 'warn');
-  } catch(e) {
-    setInfo('sInfo3', 'Failed: ' + e.message, 'err');
-    btn.disabled = false;
-    btn.textContent = '✓ CONNECT';
-  }
+  try { await hostPC.setRemoteDescription(desc); setInfo('sInfo3', 'Applying answer…', 'warn'); }
+  catch(e) { setInfo('sInfo3', 'Failed: ' + e.message, 'err'); btn.disabled = false; btn.textContent = '✓ CONNECT'; }
 }
 
 function stopAll() {
   if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
   if (hostPC) { try { hostPC.close(); } catch(_){} hostPC = null; }
-
-  const lv = document.getElementById('localVideo');
-  lv.srcObject = null;
+  // ... (Reset UI elements)
+  document.getElementById('localVideo').srcObject = null;
   document.getElementById('sPreviewWrap').style.display = 'none';
   document.getElementById('sCaptureBtn').style.display = 'inline-flex';
   document.getElementById('sStopBtn').style.display = 'none';
   document.getElementById('sOfferBtn').disabled = true;
-  document.getElementById('sOfferBtn').innerHTML = '⚡ GENERATE OFFER';
   document.getElementById('sOfferArea').style.display = 'none';
-  document.getElementById('sOfferBlob').value = '';
-  document.getElementById('sAnswerBlob').value = '';
-  document.getElementById('sConnectBtn').disabled = true;
-  document.getElementById('sConnectBtn').textContent = '✓ CONNECT';
   document.getElementById('sConnected').style.display = 'none';
-
-  ['sStep1','sStep2','sStep3'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('done','active-step');
-    el.querySelectorAll('.step-badge').forEach(b => b.remove());
-  });
-  document.getElementById('sStep1').classList.add('active-step');
-  setInfo('sInfo1', 'Pick a window or your whole screen to share.', '');
-  setInfo('sInfo2', 'Click Generate — then copy the blob and send it to your viewer.', '');
-  setInfo('sInfo3', 'Your viewer will send you an Answer — paste it below.', '');
-}
-
-// ── VIEWER ───────────────────────────────────────────────
-
-function vOfferChanged() {
-  document.getElementById('vAnswerBtn').disabled =
-    document.getElementById('vOfferBlob').value.trim().length < 10;
 }
 
 async function createAnswer() {
   let desc;
   try { desc = decode(document.getElementById('vOfferBlob').value); }
-  catch(e) { setInfo('vInfo1', 'Invalid offer — check you pasted it in full.', 'err'); return; }
-
+  catch(e) { setInfo('vInfo1', 'Invalid offer.', 'err'); return; }
   const btn = document.getElementById('vAnswerBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin spin-w"></span> GATHERING…';
-  setInfo('vInfo1', 'Collecting network info — takes a few seconds…', 'warn');
-
   if (viewerPC) { try { viewerPC.close(); } catch(_){} }
   viewerPC = new RTCPeerConnection(ICE_CFG);
-
+  
+  // DEBUG LOGGING
+  viewerPC.oniceconnectionstatechange = () => console.log("Viewer ICE State:", viewerPC.iceConnectionState);
+  
   viewerPC.ontrack = e => {
     const video = document.getElementById('remoteVideo');
-    video.srcObject = e.streams[0];
-    video.style.display = 'block';
+    video.srcObject = e.streams[0]; video.style.display = 'block';
     document.getElementById('vPlaceholder').style.display = 'none';
     document.getElementById('vLivePill').style.display = 'flex';
     document.getElementById('vDiscBtn').style.display = 'inline-flex';
-    document.getElementById('vFsBtn').style.display = 'flex';
-    setInfo('vInfo3', '🟢 Connected — receiving live stream!', 'ok');
-    markDone('vStep3');
+    setInfo('vInfo3', '🟢 Connected!', 'ok');
   };
-
-  viewerPC.onconnectionstatechange = () => {
-    if (['disconnected','failed','closed'].includes(viewerPC.connectionState)) {
-      document.getElementById('remoteVideo').style.display = 'none';
-      document.getElementById('vPlaceholder').style.display = 'flex';
-      document.getElementById('vLivePill').style.display = 'none';
-      document.getElementById('vDiscBtn').style.display = 'none';
-      document.getElementById('vFsBtn').style.display = 'none';
-      setInfo('vInfo3', 'Host disconnected.', 'warn');
-    }
-  };
-
   await viewerPC.setRemoteDescription(desc);
   const answer = await viewerPC.createAnswer();
   await viewerPC.setLocalDescription(answer);
   await waitForICE(viewerPC);
-
   document.getElementById('vAnswerBlob').value = encode(viewerPC.localDescription);
   document.getElementById('vAnswerArea').style.display = 'block';
-  setInfo('vInfo1', 'Offer accepted ✓', 'ok');
-  setInfo('vInfo2', 'Copy the Answer below and send it back to the host.', 'ok');
-  setInfo('vInfo3', 'Waiting for host to paste your Answer…', 'warn');
   btn.innerHTML = '↻ REGENERATE';
   btn.disabled = false;
-  markDone('vStep1');
-  markDone('vStep2');
-  markActive('vStep3');
 }
 
 function toggleFullscreen() {
   const wrap = document.getElementById('vVideoWrap');
-  if (!document.fullscreenElement) {
-    wrap.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
+  !document.fullscreenElement ? wrap.requestFullscreen() : document.exitFullscreen();
 }
-
-document.addEventListener('fullscreenchange', () => {
-  const isFs = !!document.fullscreenElement;
-  document.getElementById('fsIconExpand').style.display   = isFs ? 'none'  : 'block';
-  document.getElementById('fsIconCollapse').style.display = isFs ? 'block' : 'none';
-});
 
 function viewerDisconnect() {
   if (viewerPC) { try { viewerPC.close(); } catch(_){} viewerPC = null; }
   document.getElementById('remoteVideo').style.display = 'none';
   document.getElementById('vPlaceholder').style.display = 'flex';
-  document.getElementById('vLivePill').style.display = 'none';
-  document.getElementById('vDiscBtn').style.display = 'none';
-  document.getElementById('vFsBtn').style.display = 'none';
   setInfo('vInfo3', 'Disconnected.', '');
 }
 
-// ── THEME EDITOR ─────────────────────────────────────────
-
-const PRESETS = {
-  default: { '--accent':'#00d4aa','--accent2':'#0077ff','--bg':'#080b0f','--surface':'#0f1318','--surface2':'#171c23','--border':'#1f2733','--border2':'#2a3444','--text':'#dde3ec','--muted':'#5a6a80','--dim':'#2d3a4a' },
-  ocean:   { '--accent':'#0ea5e9','--accent2':'#06b6d4','--bg':'#060d14','--surface':'#0c1a27','--surface2':'#112333','--border':'#1a3044','--border2':'#234158','--text':'#e0eef8','--muted':'#527a99','--dim':'#1e3a52' },
-  violet:  { '--accent':'#a855f7','--accent2':'#6366f1','--bg':'#09060f','--surface':'#110d1e','--surface2':'#18142a','--border':'#261d3e','--border2':'#342850','--text':'#ede8f8','--muted':'#6b5a8a','--dim':'#2a1e46' },
-  amber:   { '--accent':'#f59e0b','--accent2':'#ef4444','--bg':'#0d0900','--surface':'#1a1200','--surface2':'#221800','--border':'#332200','--border2':'#442e00','--text':'#fdf3dc','--muted':'#8a7040','--dim':'#3a2800' },
-  rose:    { '--accent':'#f43f5e','--accent2':'#ec4899','--bg':'#0d0609','--surface':'#1a0c11','--surface2':'#221018','--border':'#38101e','--border2':'#4a1628','--text':'#fde8ee','--muted':'#8a4d60','--dim':'#3a0e1c' },
-  light:   { '--accent':'#0077ff','--accent2':'#7c3aed','--bg':'#f8fafc','--surface':'#ffffff','--surface2':'#f1f5f9','--border':'#e2e8f0','--border2':'#cbd5e1','--text':'#0f172a','--muted':'#64748b','--dim':'#94a3b8' },
-};
-
+// ── THEME EDITOR ──
+const PRESETS = { default: { '--accent':'#00d4aa','--accent2':'#0077ff','--bg':'#080b0f','--surface':'#0f1318','--surface2':'#171c23','--border':'#1f2733','--border2':'#2a3444','--text':'#dde3ec','--muted':'#5a6a80','--dim':'#2d3a4a' }, ocean: { '--accent':'#0ea5e9','--accent2':'#06b6d4','--bg':'#060d14','--surface':'#0c1a27','--surface2':'#112333','--border':'#1a3044','--border2':'#234158','--text':'#e0eef8','--muted':'#527a99','--dim':'#1e3a52' }, violet: { '--accent':'#a855f7','--accent2':'#6366f1','--bg':'#09060f','--surface':'#110d1e','--surface2':'#18142a','--border':'#261d3e','--border2':'#342850','--text':'#ede8f8','--muted':'#6b5a8a','--dim':'#2a1e46' }, amber: { '--accent':'#f59e0b','--accent2':'#ef4444','--bg':'#0d0900','--surface':'#1a1200','--surface2':'#221800','--border':'#332200','--border2':'#442e00','--text':'#fdf3dc','--muted':'#8a7040','--dim':'#3a2800' }, rose: { '--accent':'#f43f5e','--accent2':'#ec4899','--bg':'#0d0609','--surface':'#1a0c11','--surface2':'#221018','--border':'#38101e','--border2':'#4a1628','--text':'#fde8ee','--muted':'#8a4d60','--dim':'#3a0e1c' }, light: { '--accent':'#0077ff','--accent2':'#7c3aed','--bg':'#f8fafc','--surface':'#ffffff','--surface2':'#f1f5f9','--border':'#e2e8f0','--border2':'#cbd5e1','--text':'#0f172a','--muted':'#64748b','--dim':'#94a3b8' } };
 const COLOR_VARS = ['--accent','--accent2','--bg','--surface','--text','--border'];
 const PICKER_IDS = { '--accent':'pick-accent','--accent2':'pick-accent2','--bg':'pick-bg','--surface':'pick-surface','--text':'pick-text','--border':'pick-border' };
 const SWATCH_IDS = { '--accent':'sw-accent','--accent2':'sw-accent2','--bg':'sw-bg','--surface':'sw-surface','--text':'sw-text','--border':'sw-border' };
 const HEX_IDS    = { '--accent':'hex-accent','--accent2':'hex-accent2','--bg':'hex-bg','--surface':'hex-surface','--text':'hex-text','--border':'hex-border' };
 
-function toggleThemePanel() {
-  const p = document.getElementById('themePanel');
-  p.classList.toggle('open');
-  if (p.classList.contains('open')) syncPickersToDOM();
-}
-
-function setVar(varName, hex, swatchId, hexId) {
-  document.documentElement.style.setProperty(varName, hex);
-  document.getElementById(swatchId).style.background = hex;
-  document.getElementById(hexId).textContent = hex;
-  // also update grid overlay accent if accent changes
-  if (varName === '--accent') updateGridAccent(hex);
-  clearActivePreset();
-}
-
-function updateGridAccent(hex) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  document.body.style.backgroundImage =
-    `linear-gradient(rgba(${r},${g},${b},0.025) 1px, transparent 1px),linear-gradient(90deg, rgba(${r},${g},${b},0.025) 1px, transparent 1px)`;
-}
-
-function applyPreset(name) {
-  const p = PRESETS[name]; if (!p) return;
-  const root = document.documentElement;
-  Object.entries(p).forEach(([k,v]) => root.style.setProperty(k,v));
-  if (p['--accent']) updateGridAccent(p['--accent']);
-  syncPickersToDOM();
-  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-  const chips = document.querySelectorAll('.preset-chip');
-  chips.forEach(c => { if (c.getAttribute('onclick').includes(`'${name}'`)) c.classList.add('active'); });
-}
-
-function clearActivePreset() {
-  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-}
-
-function syncPickersToDOM() {
-  const style = getComputedStyle(document.documentElement);
-  COLOR_VARS.forEach(v => {
-    const raw = style.getPropertyValue(v).trim();
-    const hex = raw.startsWith('#') ? raw : rgbToHex(raw);
-    const swEl = document.getElementById(SWATCH_IDS[v]);
-    const hexEl = document.getElementById(HEX_IDS[v]);
-    const pickEl = document.getElementById(PICKER_IDS[v]);
-    if (swEl) swEl.style.background = hex;
-    if (hexEl) hexEl.textContent = hex;
-    if (pickEl && hex.length === 7) pickEl.value = hex;
-  });
-}
-
-function rgbToHex(rgb) {
-  const m = rgb.match(/\d+/g); if (!m || m.length < 3) return '#000000';
-  return '#' + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,'0')).join('');
-}
-
+function toggleThemePanel() { document.getElementById('themePanel').classList.toggle('open'); if (document.getElementById('themePanel').classList.contains('open')) syncPickersToDOM(); }
+function setVar(varName, hex, swatchId, hexId) { document.documentElement.style.setProperty(varName, hex); document.getElementById(swatchId).style.background = hex; document.getElementById(hexId).textContent = hex; if (varName === '--accent') updateGridAccent(hex); clearActivePreset(); }
+function updateGridAccent(hex) { const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16); document.body.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},0.025) 1px, transparent 1px),linear-gradient(90deg, rgba(${r},${g},${b},0.025) 1px, transparent 1px)`; }
+function applyPreset(name) { const p = PRESETS[name]; if (!p) return; Object.entries(p).forEach(([k,v]) => document.documentElement.style.setProperty(k,v)); if (p['--accent']) updateGridAccent(p['--accent']); syncPickersToDOM(); document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active')); document.querySelectorAll('.preset-chip').forEach(c => { if (c.getAttribute('onclick').includes(`'${name}'`)) c.classList.add('active'); }); }
+function clearActivePreset() { document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active')); }
+function syncPickersToDOM() { const style = getComputedStyle(document.documentElement); COLOR_VARS.forEach(v => { const raw = style.getPropertyValue(v).trim(); const hex = raw.startsWith('#') ? raw : rgbToHex(raw); const swEl = document.getElementById(SWATCH_IDS[v]); const hexEl = document.getElementById(HEX_IDS[v]); const pickEl = document.getElementById(PICKER_IDS[v]); if (swEl) swEl.style.background = hex; if (hexEl) hexEl.textContent = hex; if (pickEl && hex.length === 7) pickEl.value = hex; }); }
+function rgbToHex(rgb) { const m = rgb.match(/\d+/g); if (!m || m.length < 3) return '#000000'; return '#' + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,'0')).join(''); }
 function resetTheme() { applyPreset('default'); }
-
-// Init swatches on load
-window.addEventListener('DOMContentLoaded', () => {
-  const defaults = PRESETS.default;
-  COLOR_VARS.forEach(v => {
-    const hex = defaults[v] || '#000000';
-    const sw = document.getElementById(SWATCH_IDS[v]);
-    const pick = document.getElementById(PICKER_IDS[v]);
-    if (sw) sw.style.background = hex;
-    if (pick) pick.value = hex;
-  });
-});
+window.addEventListener('DOMContentLoaded', () => { const defaults = PRESETS.default; COLOR_VARS.forEach(v => { const hex = defaults[v] || '#000000'; const sw = document.getElementById(SWATCH_IDS[v]); const pick = document.getElementById(PICKER_IDS[v]); if (sw) sw.style.background = hex; if (pick) pick.value = hex; }); });
 </script>
 </body>
 </html>
