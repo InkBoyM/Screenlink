@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ScreenLink</title>
+<style>
+  body { font-family: sans-serif; background: #f4f4f4; color: #333; padding: 20px; line-height: 1.5; }
+  .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border: 1px solid #ccc; }
+  header { border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+  .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+  .tab-btn { padding: 10px; cursor: pointer; border: 1px solid #ccc; background: #eee; }
+  .tab-btn.active { background: #333; color: #fff; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .step { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; }
+  button { padding: 10px 15px; cursor: pointer; }
+  textarea { width: 100%; height: 80px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+  video { width: 100%; background: #000; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header><h1>ScreenLink</h1></header>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-share" onclick="switchTab('share')">Share Screen</button>
+    <button class="tab-btn" id="tab-view" onclick="switchTab('view')">View Screen</button>
+  </div>
+
+  <main>
+    <div class="panel active" id="sharePanel">
+      <div class="step">
+        <h3>1. Start Sharing</h3>
+        <button id="sCaptureBtn" onclick="startCapture()">Start Capture</button>
+        <video id="localVideo" autoplay muted playsinline style="display:none;"></video>
+      </div>
+      <div class="step">
+        <h3>2. Generate Offer</h3>
+        <button id="sOfferBtn" onclick="createOffer()" disabled>Generate Offer</button>
+        <textarea id="sOfferBlob" readonly placeholder="Offer will appear here..."></textarea>
+      </div>
+      <div class="step">
+        <h3>3. Connect</h3>
+        <textarea id="sAnswerBlob" placeholder="Paste viewer answer here"></textarea>
+        <button id="sConnectBtn" onclick="applyAnswer()" disabled>Connect</button>
+      </div>
+    </div>
+
+    <div class="panel" id="viewPanel">
+      <div class="step">
+        <h3>1. Paste Offer</h3>
+        <textarea id="vOfferBlob" placeholder="Paste host offer here"></textarea>
+        <button id="vAnswerBtn" onclick="createAnswer()">Generate Answer</button>
+      </div>
+      <div class="step">
+        <h3>2. View</h3>
+        <video id="remoteVideo" autoplay playsinline></video>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const ICE_CFG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+  let hostPC, viewerPC, localStream;
+
+  function switchTab(tab) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(tab + 'Panel').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  async function startCapture() {
+    localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    document.getElementById('localVideo').srcObject = localStream;
+    document.getElementById('localVideo').style.display = 'block';
+    document.getElementById('sOfferBtn').disabled = false;
+  }
+
+  async function createOffer() {
+    hostPC = new RTCPeerConnection(ICE_CFG);
+    localStream.getTracks().forEach(t => hostPC.addTrack(t, localStream));
+    
+    hostPC.onicecandidate = e => {
+      if (!e.candidate) document.getElementById('sOfferBlob').value = btoa(JSON.stringify(hostPC.localDescription));
+    };
+
+    const offer = await hostPC.createOffer();
+    await hostPC.setLocalDescription(offer);
+  }
+
+  async function applyAnswer() {
+    const val = document.getElementById('sAnswerBlob').value;
+    if (!val) return;
+    const desc = JSON.parse(atob(val));
+    await hostPC.setRemoteDescription(desc);
+    document.getElementById('sConnectBtn').innerText = "Connected!";
+  }
+
+  async function createAnswer() {
+    const val = document.getElementById('vOfferBlob').value;
+    const offer = JSON.parse(atob(val));
+    
+    viewerPC = new RTCPeerConnection(ICE_CFG);
+    viewerPC.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+    
+    viewerPC.onicecandidate = e => {
+      if (!e.candidate) document.getElementById('vOfferBlob').value = btoa(JSON.stringify(viewerPC.localDescription));
+    };
+
+    await viewerPC.setRemoteDescription(offer);
+    const answer = await viewerPC.createAnswer();
+    await viewerPC.setLocalDescription(answer);
+  }
+
+  document.getElementById('sAnswerBlob').oninput = () => {
+    document.getElementById('sConnectBtn').disabled = false;
+  };
+</script>
+</body>
+</html>
